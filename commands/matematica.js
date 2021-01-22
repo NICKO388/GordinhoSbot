@@ -60,10 +60,14 @@ module.exports.run = async(client, msg, args) => {
                 msg.channel.send(`Voce errou ;( o resultado correto era: ${FinalResult}`)
             }
         
-            collector.stop()
+            collector.stop("time end")
         }
         
     })
-    
+    collector.on(`end`, collected =>{
+        if(collected.size < 3){
+            msg.channel.send(`O tempo acabou`)
+        }
+    })
     
 }
