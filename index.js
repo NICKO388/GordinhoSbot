@@ -1,14 +1,28 @@
 const discord = require('discord.js')
 const client = new discord.Client()
+const afk = require(`./afks.json`)
 const config = require('./config.json')
 const blocked = require(`./blockedwords.json`)
 const prefix = config.prefix
+
+
 client.on('ready', () => {
     console.log("sto vivu")
-    client.user.setActivity("Bot Em Desenvolvimento, feito em js")
+    client.user.setActivity("Eu Sou Open Source :0 https://github.com/Pietro222222/GordinhoSbot")
 })
 client.on('message', msg => {
+    
     if(msg.author.bot) return;
+    if(afk.afk.includes(msg.author.username)){
+        msg.channel.send(`${msg.author}, voce saiu do modo afk`)
+        for(let i = 0; i< afk.afk.length; i++){
+            if(afk.afk[i] == msg.author.username){
+                afk.afk.splice(i)
+                
+            }
+        }
+    }
+    console.log(afk.afk.length)
     if(msg.mentions.has(client.user.id)){
         msg.channel.send(`Ola, ${msg.author}! digite ${prefix}help para uma lista de comandos`)
     }
@@ -22,7 +36,7 @@ client.on('message', msg => {
             }
             if(block){
                 msg.delete(msg.author.lastMessage)
-                msg.reply("Por favor, nao mencione mencione everyone/here")
+                msg.reply(`Por favor, nao use palavras bloqueadas`)
                 return;
             }
         }
