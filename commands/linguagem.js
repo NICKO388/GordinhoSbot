@@ -2,13 +2,13 @@ const Discord = require('discord.js');
 const firebase = require('firebase')
 const config = require(`../config.json`)
 var configf = {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: "",
-    measurementId: ""
+    apiKey: "sua apiKEY",
+    authDomain: "sua AuthDomain",
+    projectId: "sua projectId",
+    storageBucket: "sua StorageBucket",
+    messagingSenderId: "sua messagingSenderId",
+    appId: "sua appId",
+    measurementId: "sua measurementId"
   };
   // Initialize Firebase
   firebase.initializeApp(configf);
