@@ -24,7 +24,7 @@ exports.run = (client, msg, args) => {
         embed.setTitle(`Um tapa na gostosa`)
         embed.setColor(1146986)
         .setThumbnail(`${member.user.displayAvatarURL()}`)
-        .setImage(`https://i.imgur.com/K8aVYW0.gif`)
+        .setImage(`https://i.imgur.com/K8aVYW0.gi`)
         .setDescription(`<@${member.user.id}> levou um Tapa de ${msg.author}`)
         msg.channel.send(embed)
 
