@@ -81,7 +81,8 @@ exports.run = (client, msg, args) => {
         }
         embed.addFields(
             {name: "Winner", value: `${Winner}`},
-            {name: "Mensagem de resultado", value: resultMessage}
+            {name: "Mensagem de resultado", value: resultMessage},
+            {name: 'Jogar Novamente', value: 'Jogue novamente reagindo a 🔁', inline: true}
 
         )
         if(Winner == member.user.id){
@@ -93,7 +94,40 @@ exports.run = (client, msg, args) => {
             embed.setThumbnail(`${msg.author.displayAvatarURL()}`)
         }
         
-        msg.channel.send(embed)
+        msg.channel.send(embed).then(message => {
+            message.react('🔁')
+            const filter = (reaction, user) => {
+                return reaction.emoji.name === '🔁';
+            };
+            
+            const collector = message.createReactionCollector(filter, { time: 25000 });
+            
+            collector.on('collect', (reaction, user) => {
+                if(user.id == msg.author.id){
+                    console.log(`Collected ${reaction.emoji.name} from ${user.tag}`);
+                    msg.channel.send("reiniciando game")
+                    let restartGame = require('./jokempo-multi.js')
+                    restartGame.run(client, msg, args)
+                    
+                }
+                
+                
+            
+            });
+            
+            collector.on('end', collected => {
+                console.log(`Collected ${collected.size} items`);
+            });
+            
+           
+
+        })
+
+
+
+
+
+
     }
     function stopGame(){
         if(Choiced == null && MachineChoiced == null){
@@ -126,7 +160,7 @@ exports.run = (client, msg, args) => {
                     }
                 })
         }).catch(time => {
-            msg.channel.send(`O tempo acabou`)
+            msg.channel.send(`<@${member.user.id}> tem a dm fechada :P `)
             console.log(time)
 
         })
@@ -146,7 +180,7 @@ exports.run = (client, msg, args) => {
                     }
                 })
         }).catch(err => {
-            msg.channel.send(`O tempo acabou`)
+            msg.channel.send(`<@${msg.author.id}> tem a dm fechada :P `)
             console.log(err)
         })
         
