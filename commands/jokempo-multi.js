@@ -1,5 +1,7 @@
 const Discord = require('discord.js');
+const { ftruncateSync } = require('fs');
 const filter = m => m.content.includes('');
+const cfg = require(`../config.json`)
 /**
  *
  * @param {Discord.Client} client
@@ -10,6 +12,11 @@ exports.run = (client, msg, args) => {
     const member = msg.guild.member(msg.mentions.users.first())
     if(!member){
         msg.channel.send(`usuario invalido`)
+        return;
+    }
+    console.log(client.user.id)
+    if(member.user.id == client.user.id){
+        msg.channel.send(`Voce nao pode me chamar para jogar, este comando foi feito para ser jogado apenas por humanos. se voce quiser jogar comigo, utiliza ${cfg.prefix}jokempo`)
         return;
     }
     if(member.id == msg.author.id){
@@ -23,7 +30,7 @@ exports.run = (client, msg, args) => {
         await member.user.createDM()
         await msg.author.createDM()
     }
-
+    
 
     function defineWinner(){
         let resultMessage
@@ -31,7 +38,7 @@ exports.run = (client, msg, args) => {
         let Winner
         
         const embed = new Discord.MessageEmbed
-        embed.setTitle(`Jokempo <@${msg.author.id}>`)
+        embed.setTitle(`Jokempo ${msg.author.username} com $${member.user.username}`)
         embed.setImage(`https://j.gifs.com/Kz7r2b.gif`)
         if(MachineChoiced == null || Choiced == null){
             result = "Nao definido"
@@ -54,7 +61,7 @@ exports.run = (client, msg, args) => {
             result = member.user.id
         }
         if(Choiced == Opcoes[2] && MachineChoiced == Opcoes[1]){
-            resultMessage = `<@${msg.author.id}> Cortou o papel de ${member.user.id}!\n`
+            resultMessage = `<@${msg.author.id}> Cortou o papel de <@${member.user.id}>!\n`
             result = msg.author.id
         }
         if(Choiced == Opcoes[1] && MachineChoiced == Opcoes[2]){
@@ -88,7 +95,19 @@ exports.run = (client, msg, args) => {
         
         msg.channel.send(embed)
     }
-    
+    function stopGame(){
+        if(Choiced == null && MachineChoiced == null){
+            msg.channel.send(`o jogo entre ${msg.author} e <@${member.user.id}> foi encerrado\nMotivo: Nenhum deles respondeu`)
+            
+            return;
+        }
+        if(Choiced == null){
+            msg.channel.send(`o jogo entre ${msg.author} e <@${member.user.id}> foi encerrado\nMotivo: <@${msg.author.id}> nao respondeu`)
+        }
+        if(MachineChoiced == null){
+            msg.channel.send(`o jogo entre ${msg.author} e <@${member.user.id}> foi encerrado\nMotivo: <@${member.user.id}> nao respondeu`)
+        }
+    }
    createdm()
     msg.channel.send(`As opcoes seram mandadas na dm do ${msg.author} e do <@${member.id}>. abram elas por favor!`).then(() =>{
         
@@ -98,6 +117,9 @@ exports.run = (client, msg, args) => {
                     if(collected.array().join('') == Opcoes[0] || collected.array().join('') == Opcoes[1] || collected.array().join('') == Opcoes[2]){
                         MachineChoiced = collected.array().join('')
                         member.user.send(`a opcao selecionado foi ${collected.array()}`)
+                        if(Choiced != null){
+                            defineWinner()
+                        }
                     }else{
                         msg.channel.send(`Jogo cancelado devido ao <@${member.id}> ter escolhido uma opcao invalida`)
                         return;
@@ -115,7 +137,9 @@ exports.run = (client, msg, args) => {
                     if(collected.array().join('') == Opcoes[0] || collected.array().join('') == Opcoes[1] || collected.array().join('') == Opcoes[2]){
                         Choiced = collected.array().join('')
                         msg.author.send(`a opcao selecionado foi ${collected.array()}`)
-                        
+                        if(MachineChoiced != null){
+                            defineWinner()
+                        }
                     }else{
                         msg.channel.send(`Jogo cancelado devido ao <@${msg.author.id}> ter escolhido uma opcao invalida`)
                         return;
@@ -126,13 +150,13 @@ exports.run = (client, msg, args) => {
             console.log(err)
         })
         
-        msg.channel.send(`Enviando resultadoe em 20 segundos`)
-        setTimeout(defineWinner, 20000)
+        
+        
     
     
     }).catch(err => {
         console.log(err)
     })
-
+    setTimeout(stopGame, 25000)
 
 }
