@@ -14,6 +14,7 @@ exports.run = (client, msg, args) => {
         msg.channel.send(`usuario invalido`)
         return;
     }
+    let hasEnded = false
     console.log(client.user.id)
     if(member.user.id == client.user.id){
         msg.channel.send(`Voce nao pode me chamar para jogar, este comando foi feito para ser jogado apenas por humanos. se voce quiser jogar comigo, utiliza ${cfg.prefix}jokempo`)
@@ -130,6 +131,9 @@ exports.run = (client, msg, args) => {
 
     }
     function stopGame(){
+        if(hasEnded){
+            return;
+        }
         if(Choiced == null && MachineChoiced == null){
             msg.channel.send(`o jogo entre ${msg.author} e <@${member.user.id}> foi encerrado\nMotivo: Nenhum deles respondeu`)
             
@@ -137,10 +141,16 @@ exports.run = (client, msg, args) => {
         }
         if(Choiced == null){
             msg.channel.send(`o jogo entre ${msg.author} e <@${member.user.id}> foi encerrado\nMotivo: <@${msg.author.id}> nao respondeu`)
+            return
         }
         if(MachineChoiced == null){
             msg.channel.send(`o jogo entre ${msg.author} e <@${member.user.id}> foi encerrado\nMotivo: <@${member.user.id}> nao respondeu`)
+            return
         }
+    }
+    async function ForceStop(){
+        hasEnded = true
+        return;
     }
    createdm()
     msg.channel.send(`As opcoes seram mandadas na dm do ${msg.author} e do <@${member.id}>. abram elas por favor!`).then(() =>{
@@ -148,18 +158,20 @@ exports.run = (client, msg, args) => {
         member.user.send(`Digite a opcao\nOpcoes: ${Opcoes}`).then(() => {
             member.user.dmChannel.awaitMessages(filter, {max: 1, time: 25000, errors: [`time`]})
                 .then(collected => {
-                    if(collected.array().join('') == Opcoes[0] || collected.array().join('') == Opcoes[1] || collected.array().join('') == Opcoes[2]){
-                        MachineChoiced = collected.array().join('')
-                        member.user.send(`a opcao selecionado foi ${collected.array()}`)
+                    if(collected.array().join('').toLowerCase() == Opcoes[0] || collected.array().join('').toLowerCase() == Opcoes[1] || collected.array().join('').toLowerCase() == Opcoes[2]){
+                        MachineChoiced = collected.array().join('').toLowerCase()
+                        member.user.send(`a opcao selecionado foi ${collected.array().toString().toLowerCase()}`)
                         if(Choiced != null){
                             defineWinner()
                         }
                     }else{
                         msg.channel.send(`Jogo cancelado devido ao <@${member.id}> ter escolhido uma opcao invalida`)
+                        ForceStop()
                         return;
                     }
                 })
         }).catch(time => {
+
             msg.channel.send(`<@${member.user.id}> tem a dm fechada :P `)
             console.log(time)
 
@@ -168,14 +180,18 @@ exports.run = (client, msg, args) => {
         msg.author.send(`Digite a opcao\nOpcoes: ${Opcoes}`).then(() => {
             msg.author.dmChannel.awaitMessages(filter, {max: 1, time: 25000, errors: [`time`]})
                 .then(collected => {
-                    if(collected.array().join('') == Opcoes[0] || collected.array().join('') == Opcoes[1] || collected.array().join('') == Opcoes[2]){
-                        Choiced = collected.array().join('')
-                        msg.author.send(`a opcao selecionado foi ${collected.array()}`)
+                    if(collected.array().join('').toLowerCase() == Opcoes[0] || collected.array().join('').toLowerCase() == Opcoes[1] || collected.array().join('').toLowerCase() == Opcoes[2]){
+
+                        Choiced = collected.array().join('').toLowerCase()
+
+                        msg.author.send(`a opcao selecionado foi ${collected.array().toString().toLowerCase()}`)
+
                         if(MachineChoiced != null){
                             defineWinner()
                         }
                     }else{
                         msg.channel.send(`Jogo cancelado devido ao <@${msg.author.id}> ter escolhido uma opcao invalida`)
+                        ForceStop()
                         return;
                     }
                 })
