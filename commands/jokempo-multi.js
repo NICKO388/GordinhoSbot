@@ -8,7 +8,7 @@ const cfg = require(`../config.json`)
  * @param {Discord.Message} msg
  */
 
-exports.run = (client, msg, args) => {
+exports.run = async (client, msg, args) => {
     const member = msg.guild.member(msg.mentions.users.first())
     if(!member){
         msg.channel.send(`usuario invalido`)
@@ -95,6 +95,8 @@ exports.run = (client, msg, args) => {
             embed.setThumbnail(`${msg.author.displayAvatarURL()}`)
         }
         
+
+
         msg.channel.send(embed).then(message => {
             message.react('🔁')
             const filter = (reaction, user) => {
@@ -132,6 +134,7 @@ exports.run = (client, msg, args) => {
     }
     function stopGame(){
         if(hasEnded){
+            msg.channel.send(`O jogo entre <@${msg.author.id}> e <@${member.user.id}>`)
             return;
         }
         if(Choiced == null && MachineChoiced == null){
@@ -149,56 +152,124 @@ exports.run = (client, msg, args) => {
         }
     }
     async function ForceStop(){
+        
         hasEnded = true
+        stopGame()
         return;
     }
    createdm()
+   
     msg.channel.send(`As opcoes seram mandadas na dm do ${msg.author} e do <@${member.id}>. abram elas por favor!`).then(() =>{
         
-        member.user.send(`Digite a opcao\nOpcoes: ${Opcoes}`).then(() => {
-            member.user.dmChannel.awaitMessages(filter, {max: 1, time: 25000, errors: [`time`]})
-                .then(collected => {
-                    if(collected.array().join('').toLowerCase() == Opcoes[0] || collected.array().join('').toLowerCase() == Opcoes[1] || collected.array().join('').toLowerCase() == Opcoes[2]){
-                        MachineChoiced = collected.array().join('').toLowerCase()
-                        member.user.send(`a opcao selecionado foi ${collected.array().toString().toLowerCase()}`)
-                        if(Choiced != null){
-                            defineWinner()
-                        }
-                    }else{
-                        msg.channel.send(`Jogo cancelado devido ao <@${member.id}> ter escolhido uma opcao invalida`)
-                        ForceStop()
-                        return;
-                    }
-                })
-        }).catch(time => {
-
-            msg.channel.send(`<@${member.user.id}> tem a dm fechada :P `)
-            console.log(time)
-
-        })
+        const ops = new Discord.MessageEmbed
         
-        msg.author.send(`Digite a opcao\nOpcoes: ${Opcoes}`).then(() => {
-            msg.author.dmChannel.awaitMessages(filter, {max: 1, time: 25000, errors: [`time`]})
-                .then(collected => {
-                    if(collected.array().join('').toLowerCase() == Opcoes[0] || collected.array().join('').toLowerCase() == Opcoes[1] || collected.array().join('').toLowerCase() == Opcoes[2]){
+        ops.setDescription(`
+            1 = ${Opcoes[0]}
+            2 = ${Opcoes[1]}
+            3 = ${Opcoes[2]}
+            p = ${Opcoes[0]}
+            pp = ${Opcoes[1]}
+            t = ${Opcoes[2]}
+            pedra = ${Opcoes[0]}
+            papel = ${Opcoes[1]} 
+            tesoura = ${Opcoes[2]}
 
-                        Choiced = collected.array().join('').toLowerCase()
-
-                        msg.author.send(`a opcao selecionado foi ${collected.array().toString().toLowerCase()}`)
-
-                        if(MachineChoiced != null){
-                            defineWinner()
-                        }
-                    }else{
-                        msg.channel.send(`Jogo cancelado devido ao <@${msg.author.id}> ter escolhido uma opcao invalida`)
-                        ForceStop()
-                        return;
+        `)
+        
+        
+        //let Opcoes = ['pedra', 'papel', 'tesoura']
+       
+        async function reactDmMsgAuthor(){
+            const filter = (reaction, user) => {
+                return reaction.emoji.name == '✂️' || reaction.emoji.name == '🪨' || reaction.emoji.name == '📰'
+            };
+            const dm = await msg.author.send('Reaja ah uma das opcoes')
+            dm.react('✂️')
+            dm.react('🪨')
+            dm.react('📰')
+            const collector = dm.createReactionCollector(filter, {time: 15000})
+            collector.on('collect', (reaction, user) => {
+                if(user.id == msg.author.id){
+                    switch(reaction.emoji.name){
+                        case "✂️":
+                            console.log('colletado tesoura')
+                            Choiced = Opcoes[2]
+                            collector.stop()
+                        
+                            break
+                        case "🪨":
+                            console.log('colletado pedra')
+                            Choiced = Opcoes[0]
+                            collector.stop()
+                        
+                            break
+                        case "📰":
+                            console.log('colletado papel')
+                            Choiced = Opcoes[1]
+                            collector.stop()
+                        
+                            break
                     }
-                })
-        }).catch(err => {
-            msg.channel.send(`<@${msg.author.id}> tem a dm fechada :P `)
-            console.log(err)
-        })
+                    if(MachineChoiced != null)
+                    {
+                        defineWinner()
+                    }
+
+                }
+                
+            })
+
+        }
+        async function reactDmMember(){
+            const filter = (reaction, user) => {
+                return reaction.emoji.name == '✂️' || reaction.emoji.name == '🪨' || reaction.emoji.name == '📰'
+            };
+            const dm = await member.user.send('Reaja ah uma das opcoes')
+            dm.react('✂️')
+            dm.react('🪨')
+            dm.react('📰')
+            const collector = dm.createReactionCollector(filter, {time: 15000})
+            collector.on('collect', (reaction, user) => {
+                if(user.id == member.user.id){
+                    switch(reaction.emoji.name){
+                        case "✂️":
+                            console.log('colletado tesoura')
+                            MachineChoiced = Opcoes[2]
+                            collector.stop()
+                        
+                            break
+                        case "🪨":
+                            console.log('colletado pedra')
+                            MachineChoiced = Opcoes[0]
+                            collector.stop()
+                        
+                            break
+                        case "📰":
+                            console.log('colletado papel')
+                            MachineChoiced = Opcoes[1]
+                            collector.stop()
+                        
+                            break
+                    }
+                    if(Choiced != null){
+                        defineWinner()
+                    }
+
+
+                }
+                
+            })
+
+        }
+        reactDmMsgAuthor()
+        reactDmMember()
+        
+            
+            
+            
+        
+            
+
         
         
         
